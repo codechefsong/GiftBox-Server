@@ -29,7 +29,7 @@ app.post('/api/initiate-claim', async (req, res) => {
     const verificationToken = ethers.randomBytes(32);
     const verificationTokenHex = ethers.hexlify(verificationToken);
 
-    const verificationUrl = `${URL}/verify-claim?token=${verificationTokenHex}`;
+    const verificationUrl = `${URL}/giftbox/verifyclaim/${giftAddress}?token=${verificationTokenHex}`;
     
     // Send verification email using Resend
     const { data, error } = await resend.emails.send({
