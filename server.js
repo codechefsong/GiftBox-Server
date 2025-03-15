@@ -3,6 +3,7 @@ const cors = require('cors');
 const ethers = require('ethers');
 const bodyParser = require('body-parser');
 const { Resend } = require('resend');
+const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
@@ -13,10 +14,16 @@ const {
   RESEND_API_KEY,
   FROM_EMAIL,
   URL,
-  SERVER_PORT
+  SERVER_PORT,
+  BASEURL,
+  API_KEY
 } = process.env;
 
 const resend = new Resend(RESEND_API_KEY);
+const client = new OpenAI({
+  baseURL: BASEURL,
+  apiKey: API_KEY
+});
 
 app.post('/api/initiate-claim', async (req, res) => {
   try {
@@ -63,6 +70,31 @@ app.post('/api/initiate-claim', async (req, res) => {
   } catch (error) {
     console.error('Error initiating claim:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/ai', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    const response = await client.chat.completions.create({
+      model: 'meta-llama/Llama-3.1-8B-Instruct',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a writer coach.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      stream: false
+    });
+
+    return res.json({ message: response.choices[0].message.content });
+  } catch (error) {
+    console.error('Error:', error);
   }
 });
 
